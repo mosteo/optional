@@ -4,15 +4,10 @@ generic
    type Elements (<>) is private;
 package Optional.Values with Preelaborate is
 
-   type Const_Ref (Ptr : access constant Elements) is tagged limited null record
-     with Implicit_Dereference => Ptr;
+   --  Forward declarations to keep to Optional type at the top
 
-   function Image (This : Const_Ref) return String;
-
-   type Var_Ref (Ptr : access Elements) is tagged limited null record
-     with Implicit_Dereference => Ptr;
-
-   function Image (This : Var_Ref) return String;
+   type Const_Ref;
+   type Var_Ref;
 
    --------------
    -- Optional --
@@ -64,6 +59,20 @@ package Optional.Values with Preelaborate is
               then Or_Else'Result = This.Element.Ptr.all
               else Or_Else'Result = Default);
 
+   ----------------
+   -- References --
+   ----------------
+
+   type Const_Ref (Ptr : access constant Elements) is tagged limited null record
+     with Implicit_Dereference => Ptr;
+
+   function Image (This : Const_Ref) return String;
+
+   type Var_Ref (Ptr : access Elements) is tagged limited null record
+     with Implicit_Dereference => Ptr;
+
+   function Image (This : Var_Ref) return String;
+
 private
 
    package Holders is new Ada.Containers.Indefinite_Holders (Elements);
@@ -104,8 +113,8 @@ private
 
    function Image (This : Optional) return String
    is (if not This.Has_Element
-       then "[optional: empty]"
-       else "[optional: "
+       then "[empty]"
+       else "[value:"
             & This.Element.Constant_Reference.Element.all'Image & "]");
 
    function Image (This : Const_Ref) return String

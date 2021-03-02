@@ -10,5 +10,5 @@ begin
    Put_Line (Opt_Strings.Empty.Image);
    Put_Line (Opt_Strings.Empty.Or_Else ("default")'Image);
    Put_Line (Opt_Strings.Unit ("hello").Image);
-   Put_Line (Opt_Strings.Unit ("hello").Element.Ptr.all'Image);
+   Put_Line (Opt_Strings.Unit ("hello").Element.Image);
 end Optional.Demo;

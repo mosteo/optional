@@ -4,11 +4,15 @@ generic
    type Elements (<>) is private;
 package Optional.Values with Preelaborate is
 
-   type Const_Ref (Ptr : access constant Elements) is limited null record
+   type Const_Ref (Ptr : access constant Elements) is tagged limited null record
      with Implicit_Dereference => Ptr;
 
-   type Var_Ref (Ptr : access Elements) is limited null record
+   function Image (This : Const_Ref) return String;
+
+   type Var_Ref (Ptr : access Elements) is tagged limited null record
      with Implicit_Dereference => Ptr;
+
+   function Image (This : Var_Ref) return String;
 
    --------------
    -- Optional --
@@ -22,10 +26,10 @@ package Optional.Values with Preelaborate is
 
    function Unit (Element : Elements) return Optional;
 
-   function Element (This : Optional) return Const_Ref
+   function Element (This : Optional) return Const_Ref'Class
      with Pre => This.Has_Element;
 
-   function Reference (This : in out Optional) return Var_Ref
+   function Reference (This : in out Optional) return Var_Ref'Class
      with Pre => This.Has_Element;
 
    ----------------
@@ -47,7 +51,7 @@ package Optional.Values with Preelaborate is
                  Mapper : access function (Element : Elements) return Elements)
                  return Optional with
      Post => (if This.Has_Element and then Mapper /= null then
-                Map'Result.Element = Mapper (This.Element)
+                Map'Result.Element.Ptr.all = Mapper (This.Element.Ptr.all)
               elsif This.Has_Element and then Mapper = null then
                 Map'Result = This
               else
@@ -57,7 +61,7 @@ package Optional.Values with Preelaborate is
                      Default : Elements)
                      return Elements with
      Post => (if This.Has_Element
-              then Or_Else'Result = This.Element
+              then Or_Else'Result = This.Element.Ptr.all
               else Or_Else'Result = Default);
 
 private
@@ -79,8 +83,8 @@ private
    -- Element --
    -------------
 
-   function Element (This : Optional) return Const_Ref
-   is (Ptr => This.Element.Constant_Reference.Element);
+   function Element (This : Optional) return Const_Ref'Class
+   is (Const_Ref'(Ptr => This.Element.Constant_Reference.Element));
 
    --------------
    -- Flat_Map --
@@ -103,6 +107,12 @@ private
        then "[optional: empty]"
        else "[optional: "
             & This.Element.Constant_Reference.Element.all'Image & "]");
+
+   function Image (This : Const_Ref) return String
+   is (This.Ptr.all'Image);
+
+   function Image (This : Var_Ref) return String
+   is (This.Ptr.all'Image);
 
    ---------
    -- Map --
@@ -130,8 +140,8 @@ private
    -- Reference --
    ---------------
 
-   function Reference (This : in out Optional) return Var_Ref
-   is (Ptr => This.Element.Reference.Element);
+   function Reference (This : in out Optional) return Var_Ref'Class
+   is (Var_Ref'(Ptr => This.Element.Reference.Element));
 
    ----------
    -- Unit --

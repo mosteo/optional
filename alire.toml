@@ -1,6 +1,7 @@
 name = "optional"
-description = "Shiny new project"
-version = "0.0.0"
+description = "Optional values a la java.lang.Optional"
+version = "0.1-rc1"
+tags = ["optional", "functional"]
 
 authors = ["Alejandro R. Mosteo"]
 maintainers = ["Alejandro R. Mosteo <alejandro@mosteo.com>"]

@@ -1,7 +1,9 @@
 private with Ada.Containers.Indefinite_Holders;
+with Ada.Exceptions;
 
 generic
-   type Elements (<>) is private;
+   type Element_Type (<>) is private;
+   with function Image (This : Element_Type) return String;
 package Optional.Values with Preelaborate is
 
    --  Forward declarations to keep to Optional type at the top
@@ -19,7 +21,7 @@ package Optional.Values with Preelaborate is
 
    function Image (This : Optional) return String;
 
-   function Unit (Element : Elements) return Optional;
+   function Unit (Element : Element_Type) return Optional;
 
    function Element (This : Optional) return Const_Ref'Class
      with Pre => This.Has_Element;
@@ -43,7 +45,8 @@ package Optional.Values with Preelaborate is
                 Flat_Map'Result = Empty);
 
    function Map (This : Optional;
-                 Mapper : access function (Element : Elements) return Elements)
+                 Mapper : access function (Element : Element_Type)
+                                           return Element_Type)
                  return Optional with
      Post => (if This.Has_Element and then Mapper /= null then
                 Map'Result.Element.Ptr.all = Mapper (This.Element.Ptr.all)
@@ -53,29 +56,44 @@ package Optional.Values with Preelaborate is
                 Map'Result = Empty);
 
    function Or_Else (This    : Optional;
-                     Default : Elements)
-                     return Elements with
+                     Default : Element_Type)
+                     return Element_Type with
      Post => (if This.Has_Element
               then Or_Else'Result = This.Element.Ptr.all
               else Or_Else'Result = Default);
+
+   function Or_Raise (This   : Optional;
+                      Ex_Id  : Ada.Exceptions.Exception_Id;
+                      Ex_Msg : String := "")
+                      return Element_Type with
+     Post => (if This.Has_Element
+              then Or_Raise'Result = This.Element.Ptr.all
+              else raise Constraint_Error);
+   --  Actually, Ex_Id will be raised, not CE
+
+   function Filter (This      : Optional;
+                    Condition : Boolean) return Optional with
+     Post => (if Condition
+                then Filter'Result = This
+                else Filter'Result = Empty);
 
    ----------------
    -- References --
    ----------------
 
-   type Const_Ref (Ptr : access constant Elements) is tagged limited null record
-     with Implicit_Dereference => Ptr;
+   type Const_Ref (Ptr : access constant Element_Type) is
+     tagged limited null record with Implicit_Dereference => Ptr;
 
    function Image (This : Const_Ref) return String;
 
-   type Var_Ref (Ptr : access Elements) is tagged limited null record
+   type Var_Ref (Ptr : access Element_Type) is tagged limited null record
      with Implicit_Dereference => Ptr;
 
    function Image (This : Var_Ref) return String;
 
 private
 
-   package Holders is new Ada.Containers.Indefinite_Holders (Elements);
+   package Holders is new Ada.Containers.Indefinite_Holders (Element_Type);
 
    type Optional (Has_Element : Boolean) is tagged record
       case Has_Element is
@@ -94,6 +112,16 @@ private
 
    function Element (This : Optional) return Const_Ref'Class
    is (Const_Ref'(Ptr => This.Element.Constant_Reference.Element));
+
+   ------------
+   -- Filter --
+   ------------
+
+   function Filter (This      : Optional;
+                    Condition : Boolean) return Optional
+   is (if Condition
+       then This
+       else Empty);
 
    --------------
    -- Flat_Map --
@@ -115,20 +143,21 @@ private
    is (if not This.Has_Element
        then "[empty]"
        else "[value:"
-            & This.Element.Constant_Reference.Element.all'Image & "]");
+            & Image (This.Element.Constant_Reference) & "]");
 
    function Image (This : Const_Ref) return String
-   is (This.Ptr.all'Image);
+   is (Image (This.Ptr.all));
 
    function Image (This : Var_Ref) return String
-   is (This.Ptr.all'Image);
+   is (Image (This.Ptr.all));
 
    ---------
    -- Map --
    ---------
 
    function Map (This : Optional;
-                 Mapper : access function (Element : Elements) return Elements)
+                 Mapper : access function (Element : Element_Type)
+                                           return Element_Type)
                  return Optional
    is (if This.Has_Element and then Mapper /= null
        then Unit (Mapper (This.Element.Element))
@@ -139,8 +168,8 @@ private
    -------------
 
    function Or_Else (This    : Optional;
-                     Default : Elements)
-                     return Elements
+                     Default : Element_Type)
+                     return Element_Type
    is (if This.Has_Element
        then This.Element.Element
        else Default);
@@ -156,7 +185,7 @@ private
    -- Unit --
    ----------
 
-   function Unit (Element : Elements) return Optional
+   function Unit (Element : Element_Type) return Optional
    is (Has_Element => True,
        Element     => Holders.To_Holder (Element));
 

@@ -1,0 +1,5 @@
+[![Alire](https://img.shields.io/endpoint?url=https://alire.ada.dev/badges/optional.json)](https://alire.ada.dev/crates/optional.html)
+
+## Optional values
+
+See `Optional.Values` package for specs and `examples/optional-demo.adb`.

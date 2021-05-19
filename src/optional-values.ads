@@ -15,6 +15,9 @@ package Optional.Values with Preelaborate is
 
    type Optional (Has_Element : Boolean) is tagged private;
 
+   function "=" (L : Optional; R : Element_Type) return Boolean;
+   function "=" (L : Element_Type; R : Optional) return Boolean;
+
    Empty : constant Optional;
 
    function Image (This : Optional) return String;
@@ -100,9 +103,17 @@ private
       end case;
    end record;
 
-   --  for Optional'Image use Image;
-
    Empty : constant Optional := (Has_Element => False);
+
+   ---------
+   -- "=" --
+   ---------
+
+   function "=" (L : Optional; R : Element_Type) return Boolean
+   is (L.Has_Element and then L.Element.Constant_Reference = R);
+
+   function "=" (L : Element_Type; R : Optional) return Boolean
+   is (R = L);
 
    -------------
    -- Element --

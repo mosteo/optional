@@ -6,8 +6,6 @@ generic
    with function Image (This : Element_Type) return String;
 package Optional.Values with Preelaborate is
 
-   --  Forward declarations to keep to Optional type at the top
-
    type Const_Ref;
    type Var_Ref;
 

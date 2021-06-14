@@ -6,8 +6,8 @@ generic
    with function Image (This : Element_Type) return String;
 package Optional.Values with Preelaborate is
 
-   type Const_Ref;
-   type Var_Ref;
+   type Const_Ref is tagged;
+   type Var_Ref is tagged;
 
    --------------
    -- Optional --

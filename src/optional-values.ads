@@ -30,6 +30,8 @@ package Optional.Values with Preelaborate is
    function Reference (This : in out Optional) return Var_Ref'Class
      with Pre => This.Has_Element;
 
+   function Is_Empty (This : Optional) return Boolean;
+
    ----------------
    -- Operations --
    ----------------
@@ -159,6 +161,13 @@ private
 
    function Image (This : Var_Ref) return String
    is (Image (This.Ptr.all));
+
+   --------------
+   -- Is_Empty --
+   --------------
+
+   function Is_Empty (This : Optional) return Boolean
+   is (not This.Has_Element);
 
    ---------
    -- Map --

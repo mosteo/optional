@@ -6,8 +6,8 @@ generic
    with function Image (This : Element_Type) return String;
 package Optional.Values with Preelaborate is
 
-   type Const_Ref is tagged;
-   type Var_Ref is tagged;
+   type Const_Ref;
+   type Var_Ref;
 
    --------------
    -- Optional --
@@ -24,10 +24,13 @@ package Optional.Values with Preelaborate is
 
    function Unit (Element : Element_Type) return Optional;
 
-   function Element (This : Optional) return Const_Ref'Class
+   function Element (This : Optional) return Const_Ref
      with Pre => This.Has_Element;
 
-   function Reference (This : in out Optional) return Var_Ref'Class
+   function Value (This : Optional) return Element_Type
+     with Pre => This.Has_Element;
+
+   function Reference (This : in out Optional) return Var_Ref
      with Pre => This.Has_Element;
 
    function Is_Empty (This : Optional) return Boolean;
@@ -85,12 +88,12 @@ package Optional.Values with Preelaborate is
    ----------------
 
    type Const_Ref (Ptr : access constant Element_Type) is
-     tagged limited null record with Implicit_Dereference => Ptr;
+     limited null record with Implicit_Dereference => Ptr;
 
    function Image (This : Const_Ref) return String;
 
-   type Var_Ref (Ptr : access Element_Type) is tagged limited null record
-     with Implicit_Dereference => Ptr;
+   type Var_Ref (Ptr : access Element_Type) is
+     limited null record with Implicit_Dereference => Ptr;
 
    function Image (This : Var_Ref) return String;
 
@@ -121,7 +124,7 @@ private
    -- Element --
    -------------
 
-   function Element (This : Optional) return Const_Ref'Class
+   function Element (This : Optional) return Const_Ref
    is (Const_Ref'(Ptr => This.Element.Constant_Reference.Element));
 
    ------------
@@ -196,7 +199,7 @@ private
    -- Reference --
    ---------------
 
-   function Reference (This : in out Optional) return Var_Ref'Class
+   function Reference (This : in out Optional) return Var_Ref
    is (Var_Ref'(Ptr => This.Element.Reference.Element));
 
    ----------
@@ -206,5 +209,12 @@ private
    function Unit (Element : Element_Type) return Optional
    is (Has_Element => True,
        Element     => Holders.To_Holder (Element));
+
+   -----------
+   -- Value --
+   -----------
+
+   function Value (This : Optional) return Element_Type
+   is (Element (This));
 
 end Optional.Values;

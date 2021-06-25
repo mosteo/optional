@@ -6,8 +6,13 @@ generic
    with function Image (This : Element_Type) return String;
 package Optional.Values with Preelaborate is
 
-   type Const_Ref;
-   type Var_Ref;
+   --  Reference types
+
+   type Const_Ref (Ptr : access constant Element_Type) is
+   limited null record with Implicit_Dereference => Ptr;
+
+   type Var_Ref (Ptr : access Element_Type) is
+   limited null record with Implicit_Dereference => Ptr;
 
    --------------
    -- Optional --
@@ -89,13 +94,7 @@ package Optional.Values with Preelaborate is
    -- References --
    ----------------
 
-   type Const_Ref (Ptr : access constant Element_Type) is
-     limited null record with Implicit_Dereference => Ptr;
-
    function Image (This : Const_Ref) return String;
-
-   type Var_Ref (Ptr : access Element_Type) is
-     limited null record with Implicit_Dereference => Ptr;
 
    function Image (This : Var_Ref) return String;
 

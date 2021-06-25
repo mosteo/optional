@@ -1,5 +1,5 @@
-private with Ada.Containers.Indefinite_Holders;
 with Ada.Exceptions;
+private with Ada.Finalization;
 
 generic
    type Element_Type (<>) is private;
@@ -13,12 +13,14 @@ package Optional.Values with Preelaborate is
    -- Optional --
    --------------
 
-   type Optional (Has_Element : Boolean) is tagged private;
+   type Optional is tagged private;
 
    function "=" (L : Optional; R : Element_Type) return Boolean;
    function "=" (L : Element_Type; R : Optional) return Boolean;
 
    Empty : constant Optional;
+
+   function Has_Element (This : Optional) return Boolean;
 
    function Image (This : Optional) return String;
 
@@ -99,23 +101,25 @@ package Optional.Values with Preelaborate is
 
 private
 
-   package Holders is new Ada.Containers.Indefinite_Holders (Element_Type);
+   package AF renames Ada.Finalization;
 
-   type Optional (Has_Element : Boolean) is tagged record
-      case Has_Element is
-         when False => null;
-         when True  => Element : Holders.Holder;
-      end case;
+   type Element_Access is access Element_Type;
+
+   type Optional is new Ada.Finalization.Controlled
+   with record
+      Element : Element_Access; -- Holders still causing bugs
    end record;
 
-   Empty : constant Optional := (Has_Element => False);
+   overriding procedure Adjust (This : in out Optional);
+
+   overriding procedure Finalize (This : in out Optional);
 
    ---------
    -- "=" --
    ---------
 
    function "=" (L : Optional; R : Element_Type) return Boolean
-   is (L.Has_Element and then L.Element.Constant_Reference = R);
+   is (L.Has_Element and then L.Element.all = R);
 
    function "=" (L : Element_Type; R : Optional) return Boolean
    is (R = L);
@@ -125,7 +129,9 @@ private
    -------------
 
    function Element (This : Optional) return Const_Ref
-   is (Const_Ref'(Ptr => This.Element.Constant_Reference.Element));
+   is (Const_Ref'(Ptr => This.Element));
+
+   Empty : constant Optional := (AF.Controlled with Element => null);
 
    ------------
    -- Filter --
@@ -149,6 +155,13 @@ private
        then Mapper (This)
        else This);
 
+   -----------------
+   -- Has_Element --
+   -----------------
+
+   function Has_Element (This : Optional) return Boolean
+   is (This.Element /= null);
+
    -----------
    -- Image --
    -----------
@@ -157,7 +170,7 @@ private
    is (if not This.Has_Element
        then "[empty]"
        else "[value:"
-            & Image (This.Element.Constant_Reference) & "]");
+            & Image (This.Element.all) & "]");
 
    function Image (This : Const_Ref) return String
    is (Image (This.Ptr.all));
@@ -181,7 +194,7 @@ private
                                            return Element_Type)
                  return Optional
    is (if This.Has_Element and then Mapper /= null
-       then Unit (Mapper (This.Element.Element))
+       then Unit (Mapper (This.Element.all))
        else This);
 
    -------------
@@ -192,7 +205,7 @@ private
                      Default : Element_Type)
                      return Element_Type
    is (if This.Has_Element
-       then This.Element.Element
+       then This.Element.all
        else Default);
 
    ---------------
@@ -200,15 +213,15 @@ private
    ---------------
 
    function Reference (This : in out Optional) return Var_Ref
-   is (Var_Ref'(Ptr => This.Element.Reference.Element));
+   is (Var_Ref'(Ptr => This.Element));
 
    ----------
    -- Unit --
    ----------
 
    function Unit (Element : Element_Type) return Optional
-   is (Has_Element => True,
-       Element     => Holders.To_Holder (Element));
+   is (Ada.Finalization.Controlled with
+       Element     => new Element_Type'(Element));
 
    -----------
    -- Value --

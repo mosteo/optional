@@ -1,6 +1,6 @@
 name = "optional"
 description = "Optional values a la java.lang.Optional"
-version = "0.1-rc1"
+version = "0.1"
 tags = ["optional", "functional"]
 
 authors = ["Alejandro R. Mosteo"]

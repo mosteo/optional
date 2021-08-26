@@ -20,16 +20,23 @@ package Optional.Values with Preelaborate is
 
    type Optional is tagged private;
 
-   function "=" (L : Optional; R : Element_Type) return Boolean;
-   function "=" (L : Element_Type; R : Optional) return Boolean;
+   function "=" (L : Optional; R : Element_Type) return Boolean with
+     Post => "="'Result = (L.Has_Element and then L.Element = R);
+   function "=" (L : Element_Type; R : Optional) return Boolean with
+     Post => "="'Result = (R = L);
 
    Empty : constant Optional;
 
    function Has_Element (This : Optional) return Boolean;
 
-   function Image (This : Optional) return String;
+   function Is_Empty (This : Optional) return Boolean with
+     Post => Is_Empty'Result = not This.Has_Element;
 
-   function Unit (Element : Element_Type) return Optional;
+   function Image (This : Optional) return String;
+   --  Returns [empty] or [value: Element_Type'Image (This.Element)]
+
+   function Unit (Element : Element_Type) return Optional with
+     Post => Unit'Result.Element = Element;
 
    function Element (This : Optional) return Const_Ref
      with Pre => This.Has_Element;
@@ -39,8 +46,6 @@ package Optional.Values with Preelaborate is
 
    function Reference (This : in out Optional) return Var_Ref
      with Pre => This.Has_Element;
-
-   function Is_Empty (This : Optional) return Boolean;
 
    ----------------
    -- Operations --

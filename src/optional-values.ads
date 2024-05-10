@@ -3,7 +3,7 @@ private with Ada.Finalization;
 
 generic
    type Element_Type (<>) is private;
-   with function Image (This : Element_Type) return String;
+   with function Image (This : Element_Type) return String is <>;
 package Optional.Values with Preelaborate is
 
    --  Reference types
@@ -79,6 +79,13 @@ package Optional.Values with Preelaborate is
      Post => (if This.Has_Element
               then Or_Else'Result = This.Element.Ptr.all
               else Or_Else'Result = Default);
+
+   function Or_Else (This    : Optional;
+                     Default : Element_Type)
+                     return Optional with
+     Post => (if This.Has_Element
+              then Or_Else'Result = This.Element.Ptr.all
+              else Or_Else'Result = Unit (Default));
 
    function Or_Raise (This   : Optional;
                       Ex_Id  : Ada.Exceptions.Exception_Id;
@@ -211,6 +218,17 @@ private
    is (if This.Has_Element
        then This.Element.all
        else Default);
+
+   -------------
+   -- Or_Else --
+   -------------
+
+   function Or_Else (This    : Optional;
+                     Default : Element_Type)
+                     return Optional
+   is (if This.Has_Element
+       then This
+       else Unit (Default));
 
    ---------------
    -- Reference --

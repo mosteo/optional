@@ -9,3 +9,8 @@ website = "https://github.com/mosteo/optional/"
 authors = ["Alejandro R. Mosteo"]
 maintainers = ["Alejandro R. Mosteo <alejandro@mosteo.com>"]
 maintainers-logins = ["mosteo"]
+
+[[actions]]
+type = "test"
+command = ["alr", "build"]
+directory = "examples"

@@ -35,8 +35,12 @@ package Optional.Values with Preelaborate is
    function Image (This : Optional) return String;
    --  Returns [empty] or [value: Element_Type'Image (This.Element)]
 
-   function Unit (Element : Element_Type) return Optional with
-     Post => Unit'Result.Element = Element;
+   function Unit (Element : Element_Type) return Optional
+     with Post => Unit'Result.Has_Element;
+   --  Post => Unit'Result.Element = Element;
+   --
+   --  The previous Post was too restrictive as it can fail for types that
+   --  adjust on copy or that make other funny things with its "=".
 
    function Element (This : Optional) return Const_Ref
      with Pre => This.Has_Element;
